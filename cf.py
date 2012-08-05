@@ -47,12 +47,18 @@ class PythonExecuter(Executer):
         return 0
     def run(self):
         return 'python -O {0}.py'.format(self.id)
-
+def token_list(output):
+    return filter(None, output.split());
+def check_result(answer, output, strict):
+    if(strict):
+        return answer == output
+    else:
+        return token_list(answer) == token_list(output)
 def main():
     if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
         print 'Source code not exist!'
         sys.exit(1)
-
+    strict = False
     id, lang = os.path.splitext(sys.argv[1])
     executer = Executer.get(id, lang)
     
@@ -110,10 +116,9 @@ def main():
             output += output_line
         proc.wait()
         end = time.time()
-
         if proc.returncode != 0:
             result = 'RE'
-        elif answer == output:
+        elif check_result(answer, output, strict):
             result = 'AC'
         else:
             result = 'WA'
