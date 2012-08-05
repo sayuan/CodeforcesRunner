@@ -23,14 +23,14 @@ class Executer(object):
 class CppExecuter(Executer):
     def __init__(self, id): super(CppExecuter, self).__init__(id)
     def compile(self):
-       return subprocess.call('g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -o {0} {0}.cpp'.format(self.id), shell=True)
+       return subprocess.call('g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -m32 -o {0} {0}.cpp'.format(self.id), shell=True)
     def run(self):
         return './{0}'.format(self.id)
 
 class CExecuter(Executer):
     def __init__(self, id): super(CExecuter, self).__init__(id)
     def compile(self):
-       return subprocess.call('gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -o {0} {0}.c'.format(self.id), shell=True)
+       return subprocess.call('gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -m32 -o {0} {0}.c'.format(self.id), shell=True)
     def run(self):
         return './{0}'.format(self.id)
 
