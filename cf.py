@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import operator
 import os.path
 import sys
 import time
@@ -61,6 +62,9 @@ def main():
         print '>>> failed to Compile the source code!'
         sys.exit(1)
 
+    input_marks = ('input\n', 'Input\n', 'входные данные\n', 'Ввод\n')
+    output_marks = ('output\n', 'Output\n', 'выходные данные\n', 'Ответ\n')
+
     file = open('{0}.cf'.format(id), 'r');
     case = 1
     input_line = file.readline()
@@ -70,29 +74,29 @@ def main():
 
         if input_line.startswith('#'):
             input_line = file.readline();
-            while len(input_line) != 0 and not input_line.lower().endswith('input\n'):
+            while len(input_line) != 0 and not reduce(operator.or_, map(input_line.endswith, input_marks)):
                 input_line = file.readline();
             case = case+1
             continue
 
-        if input_line.lower() != 'input\n':
+        if not (input_line in input_marks):
             print '>>> input format error!'
             sys.exit(1)
 
         input_line = file.readline()
 
         input=''
-        while len(input_line) != 0 and input_line.lower() != 'output\n':
+        while len(input_line) != 0 and not (input_line in output_marks):
             input += input_line
             input_line = file.readline();
 
-        if input_line.lower() != 'output\n':
+        if not (input_line in output_marks):
             print '>>> answer format error!'
             sys.exit(1)
 
         input_line = file.readline()
         answer=''
-        while len(input_line) != 0 and not input_line.lower().endswith('input\n'):
+        while len(input_line) != 0 and not reduce(operator.or_, map(input_line.endswith, input_marks)):
             answer += input_line
             input_line = file.readline();
 
