@@ -45,6 +45,6 @@ Then, simple run `cf.py A.{lang}`, you will get the result like this:
 This tool is only verifiid on Linux now, but I think it cound be run on
 other platforms, although maybe need a little modify.
 
-Please fell free to fork and any suggesions are welcome.
+Please feel free to fork and any suggesions are welcome.
 
 [Codeforces Problem 198A problem]: http://codeforces.com/problemset/problem/198/A
