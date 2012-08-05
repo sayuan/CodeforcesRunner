@@ -58,7 +58,7 @@ def main():
     if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
         print 'Source code not exist!'
         sys.exit(1)
-    strict = False
+    strict = len(sys.argv)>=3 and (sys.argv[2] == '--strict' or sys.argv[2] == '-s')
     id, lang = os.path.splitext(sys.argv[1])
     executer = Executer.get(id, lang)
     
