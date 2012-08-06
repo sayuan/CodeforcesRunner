@@ -7,64 +7,57 @@ import sys
 import time
 import subprocess
 
+class Enviroment:
+    def __init__(self, compile_cmd, execute_cmd):
+        self.compile_cmd = compile_cmd
+        self.execute_cmd = execute_cmd
+
+class Prefrences:
+    def __init__(self):
+        self.envs = {
+                '.cpp'   : Enviroment('g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -m32 -o {0} {0}.cpp', './{0}'),
+                '.c'     : Enviroment('gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -m32 -o {0} {0}.c', './{0}'),
+                '.java'  : Enviroment('javac -cp \'.;*\' {0}.java', 'java -Xmx256M -Duser.language=en -Duser.region=US -Duser.variant=US {0}'),
+                '.py'    : Enviroment('', 'python -O {0}.py'),
+        }
+
+    def get_env(self, lang):
+        return self.envs[lang]
+
 class Executer(object):
-    def __init__(self, id):
+    def __init__(self, env, id):
+        self.env = env
         self.id = id
 
-    @staticmethod
-    def get(id, lang):
-        return {
-                '.cpp': CppExecuter,
-                '.c': CExecuter,
-                '.java': JavaExecuter,
-                '.py': PythonExecuter,
-        }[lang](id)
-
-class CppExecuter(Executer):
-    def __init__(self, id): super(CppExecuter, self).__init__(id)
     def compile(self):
-       return subprocess.call('g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -m32 -o {0} {0}.cpp'.format(self.id), shell=True)
-    def run(self):
-        return './{0}'.format(self.id)
+        if len(self.env.compile_cmd) == 0: return 0
+        return subprocess.call(self.env.compile_cmd.format(self.id), shell=True)
 
-class CExecuter(Executer):
-    def __init__(self, id): super(CExecuter, self).__init__(id)
-    def compile(self):
-       return subprocess.call('gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -m32 -o {0} {0}.c'.format(self.id), shell=True)
-    def run(self):
-        return './{0}'.format(self.id)
+    def execute(self):
+        return subprocess.Popen(self.env.execute_cmd.format(self.id), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
-class JavaExecuter(Executer):
-    def __init__(self, id): super(JavaExecuter, self).__init__(id)
-    def compile(self):
-        return subprocess.call('javac -cp \'.;*\' {0}.java'.format(self.id), shell=True)
-    def run(self):
-        return 'java -Xmx256M -Duser.language=en -Duser.region=US -Duser.variant=US {0}'.format(self.id)
-
-class PythonExecuter(Executer):
-    def __init__(self, id): super(PythonExecuter, self).__init__(id)
-    def compile(self):
-        return 0
-    def run(self):
-        return 'python -O {0}.py'.format(self.id)
 def token_list(output):
-    return filter(None, output.split());
+    return output.split();
 def check_result(answer, output, strict):
     if(strict):
         return answer == output
     else:
         return token_list(answer) == token_list(output)
+
 def main():
     if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
         print 'Source code not exist!'
         sys.exit(1)
+
+    pref = Prefrences()
+
     strict = len(sys.argv)>=3 and (sys.argv[2] == '--strict' or sys.argv[2] == '-s')
     id, lang = os.path.splitext(sys.argv[1])
-    executer = Executer.get(id, lang)
+    executer = Executer(pref.get_env(lang), id)
     
     ret = executer.compile()
 
-    if ret!=0:
+    if ret != 0:
         print '>>> failed to Compile the source code!'
         sys.exit(1)
 
@@ -108,7 +101,7 @@ def main():
 
         print 'output:'
         start = time.time()
-        proc = subprocess.Popen(executer.run(), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        proc = executer.execute()
         proc.stdin.write(input)
         output = ''
         for output_line in iter(proc.stdout.readline,''):
