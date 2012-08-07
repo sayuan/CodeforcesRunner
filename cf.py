@@ -14,7 +14,7 @@ class Enviroment:
         self.compile_cmd = compile_cmd
         self.execute_cmd = execute_cmd
 
-class Prefrences:
+class Preferences:
     def __init__(self):
         self.envs = {
                 '.cpp'   : Enviroment('g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -m32 -o {0} {0}.cpp', './{0}'),
@@ -72,7 +72,7 @@ def main():
         print 'Source code not exist!'
         sys.exit(1)
 
-    pref = Prefrences()
+    pref = Preferences()
 
     pref_file = os.path.join(os.path.split(os.path.abspath( __file__ ))[0], 'cf.conf')
     config = ConfigParser.RawConfigParser()
