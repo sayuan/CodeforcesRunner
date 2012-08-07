@@ -6,6 +6,7 @@ import os.path
 import sys
 import time
 import subprocess
+import ConfigParser
 
 class Enviroment:
     def __init__(self, compile_cmd, execute_cmd):
@@ -36,6 +37,17 @@ class Executer(object):
     def execute(self):
         return subprocess.Popen(self.env.execute_cmd.format(self.id), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
+def save_preferences(pref, config):
+    for lang, env in pref.envs.items():
+        config.add_section(lang)
+        config.set(lang, 'compile_cmd', env.compile_cmd)
+        config.set(lang, 'execute_cmd', env.execute_cmd)
+
+def load_preferences(pref, config):
+    for sections in config.sections():
+        if sections == 'global': break
+        pref.envs[sections] = Enviroment(config.get(sections, 'compile_cmd'), config.get(sections, 'execute_cmd'))
+
 def token_list(output):
     return output.split();
 def check_result(answer, output, strict):
@@ -50,6 +62,17 @@ def main():
         sys.exit(1)
 
     pref = Prefrences()
+
+    pref_file = os.path.join(os.path.split(os.path.abspath( __file__ ))[0], 'cf.conf')
+    config = ConfigParser.RawConfigParser()
+    try:
+        with open(pref_file, 'r') as f:
+            config.readfp(f)
+        load_preferences(pref, config)
+    except IOError as e:
+        save_preferences(pref, config)
+        with open(pref_file, 'w') as f:
+            config.write(f)
 
     strict = len(sys.argv)>=3 and (sys.argv[2] == '--strict' or sys.argv[2] == '-s')
     id, lang = os.path.splitext(sys.argv[1])
