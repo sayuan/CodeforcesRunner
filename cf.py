@@ -7,6 +7,7 @@ import sys
 import time
 import subprocess
 import ConfigParser
+from optparse import *
 
 class Enviroment:
     def __init__(self, compile_cmd, execute_cmd):
@@ -48,16 +49,26 @@ def load_preferences(pref, config):
         if sections == 'global': break
         pref.envs[sections] = Enviroment(config.get(sections, 'compile_cmd'), config.get(sections, 'execute_cmd'))
 
+def add_options():
+    usage = '%prog [options] [source code]'
+    parser = OptionParser(usage=usage)
+    parser.add_option( '-s', '--strict', action="store_true", default=False, help='strict comparison')
+    return parser.parse_args()
+
 def token_list(output):
     return output.split();
-def check_result(answer, output, strict):
-    if(strict):
+
+def check_result(answer, output):
+    if options.strict:
         return answer == output
     else:
         return token_list(answer) == token_list(output)
 
 def main():
-    if len(sys.argv) < 2 or not os.path.exists(sys.argv[1]):
+    global options
+    (options, args) = add_options()
+
+    if len(args) < 1 or not os.path.exists(args[0]):
         print 'Source code not exist!'
         sys.exit(1)
 
@@ -74,8 +85,7 @@ def main():
         with open(pref_file, 'w') as f:
             config.write(f)
 
-    strict = len(sys.argv)>=3 and (sys.argv[2] == '--strict' or sys.argv[2] == '-s')
-    id, lang = os.path.splitext(sys.argv[1])
+    id, lang = os.path.splitext(args[0])
     executer = Executer(pref.get_env(lang), id)
     
     ret = executer.compile()
@@ -134,7 +144,7 @@ def main():
         end = time.time()
         if proc.returncode != 0:
             result = 'RE'
-        elif check_result(answer, output, strict):
+        elif check_result(answer, output):
             result = 'AC'
         else:
             result = 'WA'
