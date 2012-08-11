@@ -5,7 +5,9 @@ import operator
 import os.path
 import sys
 import time
+import re
 import subprocess
+import urllib2
 import ConfigParser
 from optparse import *
 from lxml import etree
@@ -17,6 +19,9 @@ class Enviroment:
 
 class Preferences:
     def __init__(self):
+        self.filename_pattern = 'upper({id})'
+        self.replace_space = '_'
+        self.test_extension = '.xml'
         self.envs = {
                 '.cpp'   : Enviroment('g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -m32 -o {0} {0}.cpp', './{0}'),
                 '.c'     : Enviroment('gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -m32 -o {0} {0}.c', './{0}'),
@@ -40,12 +45,23 @@ class Executer(object):
         return subprocess.Popen(self.env.execute_cmd.format(self.id), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
 
 def save_preferences(pref, config):
+    config.add_section('global')
+    config.set('global', 'filename_pattern', pref.filename_pattern)
+    config.set('global', 'replace_space', pref.replace_space)
+    config.set('global', 'test_extension', pref.test_extension)
     for lang, env in pref.envs.items():
         config.add_section(lang)
         config.set(lang, 'compile_cmd', env.compile_cmd)
         config.set(lang, 'execute_cmd', env.execute_cmd)
 
+def config_get(config, section, option, default):
+    if not config.has_option(section, option): return default
+    return config.get(section, option)
+
 def load_preferences(pref, config):
+    pref.filename_pattern = config_get(config, 'global', 'filename_pattern', pref.filename_pattern)
+    pref.replace_space = config_get(config, 'global', 'replace_space', pref.replace_space)
+    pref.test_extension = config_get(config, 'global', 'test_extension', pref.test_extension)
     for sections in config.sections():
         if sections == 'global': break
         pref.envs[sections] = Enviroment(config.get(sections, 'compile_cmd'), config.get(sections, 'execute_cmd'))
@@ -54,6 +70,7 @@ def add_options():
     usage = '%prog [options] [source code]'
     parser = OptionParser(usage=usage)
     parser.add_option( '-s', '--strict', action="store_true", default=False, help='strict comparison')
+    parser.add_option( '-d', '--download', dest='prob_url', help='download the sample tests from specific url', metavar='url')
     return parser.parse_args()
 
 def token_list(output):
@@ -64,6 +81,36 @@ def check_result(answer, output):
         return answer == output
     else:
         return token_list(answer) == token_list(output)
+
+def download_tests(prob_url):
+    node_to_string = lambda node: ''.join([node.text]+map(etree.tostring, node.getchildren()))
+
+    problem_page = urllib2.urlopen(prob_url)
+    tree = etree.HTML(problem_page.read())
+
+    title = tree.xpath('.//div[contains(@class, "problem-statement")]/div/div[contains(@class, "title")]')[0].text
+    id = title[0]
+    name = title[3:]
+
+    filename = pref.filename_pattern.format(id=id, name=name)
+    filename = re.sub(r'upper\((.*?)\)', lambda x: x.group(1).upper(), filename)
+    filename = re.sub(r'lower\((.*?)\)', lambda x: x.group(1).lower(), filename)
+    if len(pref.replace_space) > 0:
+        filename = filename.replace(' ', pref.replace_space)
+    filename += pref.test_extension
+
+    with open(filename, 'w') as f:
+        f.write('<tests>\n')
+        for (input_node, answer_node) in zip(
+                tree.xpath('.//div[contains(@class, "input")]/pre'),
+                tree.xpath('.//div[contains(@class, "output")]/pre')):
+            f.write('<input><!--\n')
+            f.write(node_to_string(input_node).replace('<br/>', '\n'))
+            f.write('--></input>\n')
+            f.write('<answer><!--\n')
+            f.write(node_to_string(answer_node).replace('<br/>', '\n'))
+            f.write('--></answer>\n>')
+        f.write('</tests>\n')
 
 def handle_test(executer, case, input_text, answer_text):
     print 'output:'
@@ -93,13 +140,8 @@ def handle_test(executer, case, input_text, answer_text):
         raw_input('press enter to continue or <C-c> to leave.')
 
 def main():
-    global options
+    global options, pref
     (options, args) = add_options()
-
-    if len(args) < 1 or not os.path.exists(args[0]):
-        print 'Source code not exist!'
-        sys.exit(1)
-
     pref = Preferences()
 
     pref_file = os.path.join(os.path.split(os.path.abspath( __file__ ))[0], 'cf.conf')
@@ -109,9 +151,20 @@ def main():
             config.readfp(f)
         load_preferences(pref, config)
     except IOError as e:
-        save_preferences(pref, config)
-        with open(pref_file, 'w') as f:
-            config.write(f)
+        pass
+
+    config = ConfigParser.RawConfigParser()
+    save_preferences(pref, config)
+    with open(pref_file, 'w') as f:
+        config.write(f)
+
+    if options.prob_url != None:
+        download_tests(options.prob_url)
+        sys.exit(0)
+
+    if len(args) < 1 or not os.path.exists(args[0]):
+        print 'Source code not exist!'
+        sys.exit(1)
 
     id, lang = os.path.splitext(args[0])
     executer = Executer(pref.get_env(lang), id)

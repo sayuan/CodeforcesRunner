@@ -1,22 +1,20 @@
+# Installation
+The library `lxml` is needed.  Please reference
+[here](http://lxml.de/installation.html) for more information.
+
+If you are an Debian/Ubuntu user, simply type:
+
+    $ sudo apt-get install python-lxml
+
+# Usage
 Using [Codeforces Problem 198A problem] as an example.
 
 Suppose your source code is named `A.{lang}`, which `{lang}` could be
-cpp, c, java or py for the current version.
+`cpp`, `c`, `java` or `py` for the current version.
 
-First, copy the sample tests section into file A.cf.
+First, download sample tests from the problem page:
 
-    input
-    3 1 3 5
-    output
-    2
-    input
-    1 4 4 7
-    output
-    3
-    input
-    2 2 4 100
-    output
-    0
+    $ cf.py -d http://codeforces.com/problemset/problem/198/A
 
 Then, simple run `cf.py A.{lang}`, you will get the result like this:
 
@@ -42,8 +40,29 @@ Then, simple run `cf.py A.{lang}`, you will get the result like this:
 
     press enter to continue or <C-c> to leave.
 
+The file `cf.conf' contains the compile & execute commands of support
+languages, so you could add more commands to support more languages
+easily by yourself.
+
+The section [global] in `cf.conf` contains some setting about the *test
+file*'s name.  Since the *source code*'s name and the *test file*'s name
+must be exactly same, you could change these settings to follow your
+naming convension.  For example:
+
+    In the default setting:
+        filename_pattern = upper({id})
+        replace_space = _
+        test_extension = .xml
+    the filename would be 'A.xml'
+
+    Or you could added the *problem's name*: (also notice the `replace_space`)
+        filename_pattern = upper({id})-lower({name})
+        replace_space = -
+        test_extension = .xml
+    the filename would be 'A-about-bacteria.xml'
+
 This tool is only verifiid on Linux now, but I think it cound be run on
-other platforms, although maybe need a little modify.
+other platforms, although it maybe need a little modify.
 
 Please feel free to fork and any suggesions are welcome.
 
