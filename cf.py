@@ -8,6 +8,7 @@ import time
 import subprocess
 import ConfigParser
 from optparse import *
+from lxml import etree
 
 class Enviroment:
     def __init__(self, compile_cmd, execute_cmd):
@@ -64,6 +65,33 @@ def check_result(answer, output):
     else:
         return token_list(answer) == token_list(output)
 
+def handle_test(executer, case, input_text, answer_text):
+    print 'output:'
+    start = time.time()
+    proc = executer.execute()
+    proc.stdin.write(input_text)
+    output = ''
+    for output_line in iter(proc.stdout.readline,''):
+        print output_line,
+        output += output_line
+    proc.wait()
+    end = time.time()
+
+    if proc.returncode != 0:
+        result = 'RE'
+    elif check_result(answer_text, output):
+        result = 'AC'
+    else:
+        result = 'WA'
+
+    if result != 'AC':
+        print 'answer:'
+        print answer_text,
+
+    print '=== Case #{0}: {1} ({2} ms) ===\n'.format(case, result, int((end-start)*1000))
+    if result != 'AC':
+        raw_input('press enter to continue or <C-c> to leave.')
+
 def main():
     global options
     (options, args) = add_options()
@@ -87,76 +115,24 @@ def main():
 
     id, lang = os.path.splitext(args[0])
     executer = Executer(pref.get_env(lang), id)
-    
+
     ret = executer.compile()
 
     if ret != 0:
         print '>>> failed to Compile the source code!'
         sys.exit(1)
 
-    input_marks = ('input\n', 'Input\n', 'входные данные\n', 'Ввод\n')
-    output_marks = ('output\n', 'Output\n', 'выходные данные\n', 'Ответ\n')
+    with open('{0}.xml'.format(id)) as test_file:
+        tree = etree.XML(test_file.read())
 
-    file = open('{0}.cf'.format(id), 'r');
-    case = 1
-    input_line = file.readline()
-    while True:
-        if len(input_line)==0:
-            break;
+        inputs = tree.xpath('./input/comment()')
+        answers = tree.xpath('./answer/comment()')
+        case_count = len(inputs)
 
-        if input_line.startswith('#'):
-            input_line = file.readline();
-            while len(input_line) != 0 and not reduce(operator.or_, map(input_line.endswith, input_marks)):
-                input_line = file.readline();
-            case = case+1
-            continue
-
-        if not (input_line in input_marks):
-            print '>>> input format error!'
-            sys.exit(1)
-
-        input_line = file.readline()
-
-        input=''
-        while len(input_line) != 0 and not (input_line in output_marks):
-            input += input_line
-            input_line = file.readline();
-
-        if not (input_line in output_marks):
-            print '>>> answer format error!'
-            sys.exit(1)
-
-        input_line = file.readline()
-        answer=''
-        while len(input_line) != 0 and not reduce(operator.or_, map(input_line.endswith, input_marks)):
-            answer += input_line
-            input_line = file.readline();
-
-        print 'output:'
-        start = time.time()
-        proc = executer.execute()
-        proc.stdin.write(input)
-        output = ''
-        for output_line in iter(proc.stdout.readline,''):
-            print output_line,
-            output += output_line
-        proc.wait()
-        end = time.time()
-        if proc.returncode != 0:
-            result = 'RE'
-        elif check_result(answer, output):
-            result = 'AC'
-        else:
-            result = 'WA'
-
-        if result != 'AC':
-            print 'answer:'
-            print answer,
-
-        print '=== Case #{0}: {1} ({2} ms) ===\n'.format(case, result, int((end-start)*1000))
-        if result != 'AC':
-            raw_input('press enter to continue or <C-c> to leave.')
-        case = case+1
+        for case in xrange(case_count):
+            input_text = inputs[case].text[1:]
+            answer_text = answers[case].text[1:]
+            handle_test(executer, case, input_text, answer_text)
 
 if __name__ == '__main__':
     main()
