@@ -65,7 +65,7 @@ def load_preferences(pref, config):
     pref.replace_space = config_get(config, 'global', 'replace_space', pref.replace_space)
     pref.test_extension = config_get(config, 'global', 'test_extension', pref.test_extension)
     for sections in config.sections():
-        if sections == 'global': break
+        if sections == 'global': continue
         pref.envs[sections] = Enviroment(config.get(sections, 'compile_cmd'), config.get(sections, 'execute_cmd'))
 
 def add_options():
