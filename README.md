@@ -7,14 +7,24 @@ If you are an Debian/Ubuntu user, simply type:
     $ sudo apt-get install python-lxml
 
 # Usage
-Using [Codeforces Problem 198A problem] as an example.
+Using [Codeforces Problem 198A problem
+](http://codeforces.com/problemset/problem/198/A) as an example.
 
+## Donwload Sample Tests
+The url of this problem is
+<http://codeforces.com/problemset/problem/198/A>.  Please notice the
+**contest_id** is **198** and the **problem_id** is **A**.
+
+    $ cf.py -c 198 -p A     # download this problem
+    $ cf.py -c 198          # download all problems in this contest
+
+There is another url <http://codeforces.com/contest/198/problem/A> which
+indicated the same problem.  You can see the contest_id and problem_id
+is same, so it wouldn't be a problem.
+
+## Running the Tests
 Suppose your source code is named `A.{lang}`, which `{lang}` could be
 `cpp`, `c`, `java` or `py` for the current version.
-
-First, download sample tests from the problem page:
-
-    $ cf.py -d http://codeforces.com/problemset/problem/198/A
 
 Then, simple run `cf.py A.{lang}`, you will get the result like this:
 
@@ -40,6 +50,7 @@ Then, simple run `cf.py A.{lang}`, you will get the result like this:
 
     press enter to continue or <C-c> to leave.
 
+## Configurations
 The file `cf.conf' contains the compile & execute commands of support
 languages, so you could add more commands to support more languages
 easily by yourself.
@@ -49,21 +60,24 @@ file*'s name.  Since the *source code*'s name and the *test file*'s name
 must be exactly same, you could change these settings to follow your
 naming convension.  For example:
 
-    In the default setting:
-        filename_pattern = upper({id})
-        replace_space = _
-        test_extension = .xml
-    the filename would be 'A.xml'
+In the default setting:
 
-    Or you could added the *problem's name*: (also notice the `replace_space`)
-        filename_pattern = upper({id})-lower({name})
-        replace_space = -
-        test_extension = .xml
-    the filename would be 'A-about-bacteria.xml'
+    filename_pattern = upper({id})
+    replace_space = _
+    test_extension = .xml
 
-This tool is only verifiid on Linux now, but I think it cound be run on
+the filename would be 'A.xml'
+
+Or you could added the *problem's name*: (also notice the `replace_space`)
+
+    filename_pattern = upper({id})-lower({name})
+    replace_space = -
+    test_extension = .xml
+
+the filename would be 'A-about-bacteria.xml'
+
+# About
+This tool is only verifiid on Linux now, but I think it could be run on
 other platforms, although it maybe need a little modify.
 
 Please feel free to fork and any suggesions are welcome.
-
-[Codeforces Problem 198A problem]: http://codeforces.com/problemset/problem/198/A
