@@ -118,9 +118,11 @@ def download_problem(contest_id, problem_id):
                 tree.xpath('.//div[contains(@class, "output")]/pre')):
             f.write('<input><![CDATA[\n')
             f.write(node_to_string(input_node).replace('<br/>', '\n'))
+            f.write('\n')
             f.write(']]></input>\n')
             f.write('<answer><![CDATA[\n')
             f.write(node_to_string(answer_node).replace('<br/>', '\n'))
+            f.write('\n')
             f.write(']]></answer>\n')
         f.write('</tests>\n')
 
@@ -136,6 +138,7 @@ def handle_test(executer, case, input_text, answer_text):
         print output_line,
         output += output_line
     proc.wait()
+    print
     end = time.time()
 
     if proc.returncode != 0:
@@ -147,7 +150,7 @@ def handle_test(executer, case, input_text, answer_text):
 
     if result != 'AC':
         print 'answer:'
-        print answer_text,
+        print answer_text
 
     print '=== Case #{0}: {1} ({2} ms) ===\n'.format(case, result, int((end-start)*1000))
     if result != 'AC':
@@ -200,8 +203,8 @@ def main():
         case_count = len(inputs)
 
         for case in xrange(case_count):
-            input_text = inputs[case].text[1:]
-            answer_text = answers[case].text[1:]
+            input_text = inputs[case].text[1:-1]
+            answer_text = answers[case].text[1:-1]
             handle_test(executer, case, input_text, answer_text)
 
 if __name__ == '__main__':
