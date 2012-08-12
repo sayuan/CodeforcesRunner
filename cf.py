@@ -104,12 +104,12 @@ def download_tests(prob_url):
         for (input_node, answer_node) in zip(
                 tree.xpath('.//div[contains(@class, "input")]/pre'),
                 tree.xpath('.//div[contains(@class, "output")]/pre')):
-            f.write('<input><!--\n')
+            f.write('<input><![CDATA[\n')
             f.write(node_to_string(input_node).replace('<br/>', '\n'))
-            f.write('--></input>\n')
-            f.write('<answer><!--\n')
+            f.write(']]></input>\n')
+            f.write('<answer><![CDATA[\n')
             f.write(node_to_string(answer_node).replace('<br/>', '\n'))
-            f.write('--></answer>\n>')
+            f.write(']]></answer>\n>')
         f.write('</tests>\n')
 
 def handle_test(executer, case, input_text, answer_text):
@@ -178,8 +178,8 @@ def main():
     with open('{0}.xml'.format(id)) as test_file:
         tree = etree.XML(test_file.read())
 
-        inputs = tree.xpath('./input/comment()')
-        answers = tree.xpath('./answer/comment()')
+        inputs = tree.xpath('./input')
+        answers = tree.xpath('./answer')
         case_count = len(inputs)
 
         for case in xrange(case_count):
