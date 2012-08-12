@@ -109,7 +109,7 @@ def download_tests(prob_url):
             f.write(']]></input>\n')
             f.write('<answer><![CDATA[\n')
             f.write(node_to_string(answer_node).replace('<br/>', '\n'))
-            f.write(']]></answer>\n>')
+            f.write(']]></answer>\n')
         f.write('</tests>\n')
 
 def handle_test(executer, case, input_text, answer_text):
