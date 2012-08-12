@@ -12,6 +12,8 @@ import ConfigParser
 from optparse import *
 from lxml import etree
 
+CODEFORCES_URL = 'http://codeforces.com'
+
 class Enviroment:
     def __init__(self, compile_cmd, execute_cmd):
         self.compile_cmd = compile_cmd
@@ -69,8 +71,11 @@ def load_preferences(pref, config):
 def add_options():
     usage = '%prog [options] [source code]'
     parser = OptionParser(usage=usage)
-    parser.add_option( '-s', '--strict', action="store_true", default=False, help='strict comparison')
-    parser.add_option( '-d', '--download', dest='prob_url', help='download the sample tests from specific url', metavar='url')
+    parser.add_option( '-s', '--strict', action="store_true", default=False, help='Strict comparison.')
+    parser.add_option( '-c', '--contest', dest='contest_id', help='Download the specific contest. '
+            'If the PROBLEM_ID isn\'t specific, then download all problems in the contest.')
+    parser.add_option( '-p', '--problem', dest='problem_id', help='Download the specific problem. '
+            'The CONTEST_ID is required.')
     return parser.parse_args()
 
 def token_list(output):
@@ -82,17 +87,24 @@ def check_result(answer, output):
     else:
         return token_list(answer) == token_list(output)
 
-def download_tests(prob_url):
+def download_contest(contest_id):
+    contest_url = '/'.join((CODEFORCES_URL, 'contest', contest_id))
+    contest_page = urllib2.urlopen(contest_url)
+    tree = etree.HTML(contest_page.read())
+    for i in tree.xpath(".//table[contains(@class, 'problems')]//td[contains(@class, 'id')]/a"):
+        download_problem(contest_id, i.text.strip())
+
+def download_problem(contest_id, problem_id):
     node_to_string = lambda node: ''.join([node.text]+map(etree.tostring, node.getchildren()))
 
-    problem_page = urllib2.urlopen(prob_url)
+    problem_url = '/'.join((CODEFORCES_URL, 'contest', contest_id, 'problem', problem_id))
+    problem_page = urllib2.urlopen(problem_url)
     tree = etree.HTML(problem_page.read())
 
     title = tree.xpath('.//div[contains(@class, "problem-statement")]/div/div[contains(@class, "title")]')[0].text
-    id = title[0]
     name = title[3:]
 
-    filename = pref.filename_pattern.format(id=id, name=name)
+    filename = pref.filename_pattern.format(id=problem_id, name=name)
     filename = re.sub(r'upper\((.*?)\)', lambda x: x.group(1).upper(), filename)
     filename = re.sub(r'lower\((.*?)\)', lambda x: x.group(1).lower(), filename)
     if len(pref.replace_space) > 0:
@@ -111,6 +123,8 @@ def download_tests(prob_url):
             f.write(node_to_string(answer_node).replace('<br/>', '\n'))
             f.write(']]></answer>\n')
         f.write('</tests>\n')
+
+    print 'contest={0!r}, id={1!r}, problem={2!r} is downloaded.'.format(contest_id, problem_id, name)
 
 def handle_test(executer, case, input_text, answer_text):
     print 'output:'
@@ -158,8 +172,11 @@ def main():
     with open(pref_file, 'w') as f:
         config.write(f)
 
-    if options.prob_url != None:
-        download_tests(options.prob_url)
+    if options.contest_id != None:
+        if options.problem_id != None:
+            download_problem(options.contest_id, options.problem_id)
+        else:
+            download_contest(options.contest_id)
         sys.exit(0)
 
     if len(args) < 1 or not os.path.exists(args[0]):
