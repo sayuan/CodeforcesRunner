@@ -13,6 +13,7 @@ from optparse import *
 from lxml import etree
 
 CODEFORCES_URL = 'http://codeforces.com'
+EPS = 1e-6
 
 class Enviroment:
     def __init__(self, compile_cmd, execute_cmd):
@@ -72,21 +73,11 @@ def load_preferences(pref, config):
 def add_options():
     usage = '%prog [options] [source code]'
     parser = OptionParser(usage=usage)
-    parser.add_option( '-s', '--strict', action="store_true", default=False, help='Strict comparison.')
     parser.add_option( '-c', '--contest', dest='contest_id', help='Download the specific contest. '
             'If the PROBLEM_ID isn\'t specific, then download all problems in the contest.')
     parser.add_option( '-p', '--problem', dest='problem_id', help='Download the specific problem. '
             'The CONTEST_ID is required.')
     return parser.parse_args()
-
-def token_list(output):
-    return output.split();
-
-def check_result(answer, output):
-    if options.strict:
-        return answer == output
-    else:
-        return token_list(answer) == token_list(output)
 
 def download_contest(contest_id):
     contest_url = '/'.join((CODEFORCES_URL, 'contest', contest_id))
@@ -129,32 +120,64 @@ def download_problem(contest_id, problem_id):
 
     print 'contest={0!r}, id={1!r}, problem={2!r} is downloaded.'.format(contest_id, problem_id, name)
 
+def is_integer(s):
+    try:
+        int(s)
+    except ValueError:
+        return False
+    return True
+
+def is_number(s):
+    try:
+        float(s)
+    except ValueError:
+        return False
+    return True
+
+def floating_equal(a, b):
+    return abs(a-b) < EPS
+
+def check_result(answer_text, output_text):
+    answer_tokens = answer_text.split()
+    output_tokens = output_text.split()
+    if len(answer_tokens) != len(output_tokens): return False
+    for answer_token, output_token in zip(answer_tokens, output_tokens):
+        if is_integer(answer_token) and is_integer(output_token):
+            if int(answer_token) != int(output_token): return False
+        elif is_number(answer_token) and is_number(output_token):
+            if not floating_equal(float(answer_token), float(output_token)): return False
+        else:
+            if answer_token != output_token: return False
+    return True
+
 def handle_test(executer, case, input_text, answer_text):
     print 'output:'
     start = time.time()
     proc = executer.execute()
     proc.stdin.write(input_text)
-    output = ''
+    output_text = ''
     for output_line in iter(proc.stdout.readline,''):
         print output_line,
-        output += output_line
+        output_text += output_line
     proc.wait()
     print
     end = time.time()
 
     if proc.returncode != 0:
         result = 'RE'
-    elif check_result(answer_text, output):
+    elif answer_text == output_text:
+        result = 'EXACTLY'
+    elif check_result(answer_text, output_text):
         result = 'AC'
     else:
         result = 'WA'
 
-    if result != 'AC':
+    if result != 'EXACTLY':
         print 'answer:'
         print answer_text
 
     print '=== Case #{0}: {1} ({2} ms) ===\n'.format(case, result, int((end-start)*1000))
-    if result != 'AC':
+    if result != 'EXACTLY':
         raw_input('press enter to continue or <C-c> to leave.')
 
 def main():
