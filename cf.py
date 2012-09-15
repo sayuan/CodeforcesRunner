@@ -29,6 +29,7 @@ class Preferences:
                 '.c'     : Enviroment('gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -m32 -o {0} {0}.c', './{0}'),
                 '.java'  : Enviroment('javac -cp \'.;*\' {0}.java', 'java -Xmx256M -Duser.language=en -Duser.region=US -Duser.variant=US {0}'),
                 '.py'    : Enviroment('', 'python -O {0}.py'),
+                '.scala' : Enviroment('scalac -cp \'.;*\' {0}.scala', 'scala -J-Xmx256M -J-Duser.language=en -J-Duser.region=US -J-Duser.variant=US {0}'),
         }
 
     def get_env(self, lang):
