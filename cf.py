@@ -96,7 +96,7 @@ def download_problem(contest_id, problem_id):
     title = tree.xpath('.//div[contains(@class, "problem-statement")]/div/div[contains(@class, "title")]')[0].text
     name = title[3:]
 
-    filename = pref.filename_pattern.format(id=problem_id, name=name)
+    filename = pref.filename_pattern.format(id=problem_id, name=name, contest=contest_id)
     filename = re.sub(r'upper\((.*?)\)', lambda x: x.group(1).upper(), filename)
     filename = re.sub(r'lower\((.*?)\)', lambda x: x.group(1).lower(), filename)
     if len(pref.replace_space) > 0:

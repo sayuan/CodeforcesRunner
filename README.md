@@ -68,9 +68,10 @@ In the default setting:
 
 the filename would be 'A.xml'
 
-Or you could added the *problem's name*: (also notice the `replace_space`)
+Or you could added the *contest id* and *problem's name*: (also notice the
+`replace_space`)
 
-    filename_pattern = upper({id})-lower({name})
+    filename_pattern = {contest}-upper({id})-lower({name})
     replace_space = -
     test_extension = .xml
 
