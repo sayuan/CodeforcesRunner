@@ -1,0 +1,21 @@
+PATTERN = "upper({id})"
+REPLACE_SPACE = "_"
+EXTENSION = ".xml"
+ENV = {
+    ".c": {
+        "compile": "gcc -static -fno-optimize-sibling-calls -fno-strict-aliasing -fno-asm -lm -s -O2 -m32 -o {0} {0}.c",
+        "execute": "./{0}",
+    },
+    ".cpp": {
+        "compile": "g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -m32 -o {0} {0}.cpp",
+        "execute": "./{0}",
+    },
+    ".py": {
+        "compile": "",
+        "execute": "python -O {0}.py",
+    },
+    ".java": {
+        "compile": "javac -cp '.;*' {0}.java",
+        "execute": "java -Xmx256M -Duser.language=en -Duser.region=US -Duser.variant=US {0}",
+    },
+}

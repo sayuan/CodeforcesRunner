@@ -51,29 +51,29 @@ Then, simple run `cf.py A.{lang}`, you will get the result like this:
     press enter to continue or <C-c> to leave.
 
 ## Configurations
-The file `cf.conf' contains the compile & execute commands of support
+The file `conf.py' contains the compile & execute commands of support
 languages, so you could add more commands to support more languages
 easily by yourself.
 
-The section [global] in `cf.conf` contains some setting about the *test
+The section [global] in `conf.py` contains some setting about the *test
 file*'s name.  Since the *source code*'s name and the *test file*'s name
 must be exactly same, you could change these settings to follow your
 naming convension.  For example:
 
 In the default setting:
 
-    filename_pattern = upper({id})
-    replace_space = _
-    test_extension = .xml
+    PATTERN = "upper({id})"
+    REPLACE_SPACE = "_"
+    EXTENSION = ".xml"
 
 the filename would be 'A.xml'
 
 Or you could added the *contest id* and *problem's name*: (also notice the
 `replace_space`)
 
-    filename_pattern = {contest}-upper({id})-lower({name})
-    replace_space = -
-    test_extension = .xml
+    PATTERN = "{contest}-upper({id})-lower({name})"
+    REPLACE_SPACE = "-"
+    EXTENSION = ".xml"
 
 the filename would be 'A-about-bacteria.xml'
 
