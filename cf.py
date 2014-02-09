@@ -58,19 +58,17 @@ def download_problem(contest_id, problem_id):
     filename += conf.EXTENSION
 
     with open(filename, 'w') as f:
-        f.write('<tests>\n')
         for (input_node, answer_node) in zip(
                 tree.xpath('.//div[contains(@class, "input")]/pre'),
                 tree.xpath('.//div[contains(@class, "output")]/pre')):
-            f.write('<input><![CDATA[\n')
+            f.write('<input>\n')
             f.write(node_to_string(input_node).replace('<br/>', '\n'))
             f.write('\n')
-            f.write(']]></input>\n')
-            f.write('<answer><![CDATA[\n')
+            f.write('</input>\n')
+            f.write('<answer>\n')
             f.write(node_to_string(answer_node).replace('<br/>', '\n'))
             f.write('\n')
-            f.write(']]></answer>\n')
-        f.write('</tests>\n')
+            f.write('</answer>\n')
 
     print 'contest={0!r}, id={1!r}, problem={2!r} is downloaded.'.format(contest_id, problem_id, name)
 
@@ -166,15 +164,11 @@ def main():
         sys.exit(1)
 
     with open('{0}{1}'.format(id, conf.EXTENSION)) as test_file:
-        tree = etree.XML(test_file.read())
-
-        inputs = tree.xpath('./input')
-        answers = tree.xpath('./answer')
-        case_count = len(inputs)
-
-        for case in xrange(case_count):
-            input_text = inputs[case].text[1:-1]
-            answer_text = answers[case].text[1:-1]
+        samples = etree.fromstring("<samples>{0}</samples>".format(test_file.read()))
+        nodes = samples.getchildren()
+        for case in xrange(len(nodes)/2):
+            input_text = nodes[case*2].text[1:-1]
+            answer_text = nodes[case*2+1].text[1:-1]
             handle_test(executer, case, input_text, answer_text)
 
 if __name__ == '__main__':
