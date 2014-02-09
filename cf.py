@@ -165,7 +165,7 @@ def main():
         print '>>> failed to Compile the source code!'
         sys.exit(1)
 
-    with open('{0}.xml'.format(id)) as test_file:
+    with open('{0}{1}'.format(id, conf.EXTENSION)) as test_file:
         tree = etree.XML(test_file.read())
 
         inputs = tree.xpath('./input')
