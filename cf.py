@@ -34,6 +34,12 @@ def add_options():
             'The CONTEST_ID is required.')
     return parser.parse_args()
 
+def install_proxy():
+    if hasattr(conf, 'HTTP_PROXY'):
+        proxy = urllib2.ProxyHandler({'http': conf.HTTP_PROXY})
+        opener = urllib2.build_opener(proxy)
+        urllib2.install_opener(opener)
+
 def download_contest(contest_id):
     contest_url = '/'.join((CODEFORCES_URL, 'contest', contest_id))
     contest_page = urllib2.urlopen(contest_url)
@@ -144,6 +150,7 @@ def main():
         sys.exit(1)
 
     if options.contest_id != None:
+        install_proxy()
         if options.problem_id != None:
             download_problem(options.contest_id, options.problem_id)
         else:
