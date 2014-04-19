@@ -145,7 +145,7 @@ def main():
     try:
         import conf
     except ImportError, e:
-        print 'conf.py is not exist.'
+        print 'conf.py does not exist.'
         print 'Maybe you should copy `conf.py.example` to `conf.py`.'
         sys.exit(1)
 
