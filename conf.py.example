@@ -7,7 +7,7 @@ ENV = {
         "execute": "./{0}",
     },
     ".cpp": {
-        "compile": "g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -std=c++0x -D__USE_MINGW_ANSI_STDIO=0 -m32 -o {0} {0}.cpp",
+        "compile": "g++ -static -fno-optimize-sibling-calls -fno-strict-aliasing -lm -s -x c++ -O2 -std=c++11 -D__USE_MINGW_ANSI_STDIO=0 -m32 -o {0} {0}.cpp",
         "execute": "./{0}",
     },
     ".py": {
