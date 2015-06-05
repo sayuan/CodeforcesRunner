@@ -1,15 +1,25 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
+from __future__ import (absolute_import, division,
+                        print_function, unicode_literals)
+from builtins import (
+        bytes, dict, int, list, object, range, str,
+        ascii, chr, hex, input, next, oct, open,
+        pow, round, super,
+        filter, map, zip)
 from optparse import *
 import os.path
 import re
 import subprocess
 import sys
 import time
-import urllib2
 
 from lxml import etree
+
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 
 CODEFORCES_URL = 'http://codeforces.com'
 EPS = 1e-6
@@ -66,7 +76,7 @@ def download_contest(contest_id):
 
 def download_problem(contest_id, problem_id):
     node_to_string = lambda node: ''.join(
-        [node.text] + map(etree.tostring, node.getchildren()))
+        [node.text] + [etree.tostring(x, encoding="unicode") for x in node.getchildren()])
 
     problem_url = '/'.join(
         (CODEFORCES_URL, 'contest', contest_id, 'problem', problem_id))
@@ -100,8 +110,8 @@ def download_problem(contest_id, problem_id):
             f.write('\n')
             f.write('</answer>\n')
 
-    print 'contest={0!r}, id={1!r}, problem={2!r} is downloaded.'.format(
-        contest_id, problem_id, name)
+    print('contest={0!r}, id={1!r}, problem={2!r} is downloaded.'.format(
+        contest_id, problem_id, name))
 
 
 def is_integer(s):
@@ -143,16 +153,17 @@ def check_result(answer_text, output_text):
 
 
 def handle_test(executer, case, input_text, answer_text):
-    print 'output:'
+    print('output:')
     start = time.time()
     proc = executer.execute()
-    proc.stdin.write(input_text)
+    proc.stdin.write(input_text.encode('utf-8'))
+    proc.stdin.flush()
     output_text = ''
-    for output_line in iter(proc.stdout.readline, ''):
-        print output_line,
-        output_text += output_line
+    for output_line in proc.stdout:
+        print(output_line.decode('utf-8'), end="")
+        output_text += output_line.decode('utf-8')
     proc.wait()
-    print
+    print()
     end = time.time()
 
     if proc.returncode != 0:
@@ -165,13 +176,13 @@ def handle_test(executer, case, input_text, answer_text):
         result = 'WA'
 
     if result != 'EXACTLY':
-        print 'answer:'
-        print answer_text
+        print('answer:')
+        print(answer_text)
 
-    print '=== Case #{0}: {1} ({2} ms) ===\n'.format(
-        case, result, int((end-start) * 1000))
+    print('=== Case #{0}: {1} ({2} ms) ===\n'.format(
+        case, result, int((end-start) * 1000)))
     if result != 'EXACTLY':
-        raw_input('press enter to continue or <C-c> to leave.')
+        input('press enter to continue or <C-c> to leave.')
 
 
 def main():
@@ -180,9 +191,9 @@ def main():
 
     try:
         import conf
-    except ImportError, e:
-        print 'conf.py does not exist.'
-        print 'Maybe you should copy `conf.py.example` to `conf.py`.'
+    except ImportError:
+        print('conf.py does not exist.')
+        print('Maybe you should copy `conf.py.example` to `conf.py`.')
         sys.exit(1)
 
     if options.contest_id is not None:
@@ -194,7 +205,7 @@ def main():
         sys.exit(0)
 
     if len(args) < 1 or not os.path.exists(args[0]):
-        print 'Source code not exist!'
+        print('Source code not exist!')
         sys.exit(1)
 
     id, lang = os.path.splitext(args[0])
@@ -203,14 +214,14 @@ def main():
     ret = executer.compile()
 
     if ret != 0:
-        print '>>> failed to Compile the source code!'
+        print('>>> failed to Compile the source code!')
         sys.exit(1)
 
     with open('{0}{1}'.format(id, conf.EXTENSION)) as test_file:
         samples = etree.fromstring(
             '<samples>{0}</samples>'.format(test_file.read()))
         nodes = samples.getchildren()
-        for case in xrange(len(nodes)/2):
+        for case in range(len(nodes)//2):
             input_text = nodes[case*2].text[1:-1]
             answer_text = nodes[case*2+1].text[1:-1]
             handle_test(executer, case, input_text, answer_text)
