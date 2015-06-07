@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
@@ -225,6 +224,3 @@ def main():
             input_text = nodes[case*2].text[1:-1]
             answer_text = nodes[case*2+1].text[1:-1]
             handle_test(executer, case, input_text, answer_text)
-
-if __name__ == '__main__':
-    main()
