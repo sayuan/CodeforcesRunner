@@ -189,7 +189,7 @@ def main():
     (options, args) = add_options()
 
     try:
-        import conf
+        from cfrun import conf
     except ImportError:
         print('conf.py does not exist.')
         print('Maybe you should copy `conf.py.example` to `conf.py`.')
